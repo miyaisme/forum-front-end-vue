@@ -5,13 +5,21 @@
       :initialRestaurant="restaurant"
     />
     <hr>
-    <!-- 餐廳評論 RestaurantComments -->
-    <!-- 新增評論 CreateComment -->
+    <RestaurantComments
+      :restaurant-comments="restaurantComments"
+      @after-delete-comment="afterDeleteComment"
+    />
+    <CreateComment
+      :restaurant-id="restaurant.id"
+      @after-create-comment="afterCreateComment"
+    />
   </div>
 </template>
 
 <script>
 import RestaurantDetail from '../components/RestaurantDetail.vue'
+import RestaurantComments from '../components/RestaurantComments.vue'
+import CreateComment from '../components/CreateComment.vue'
 const dummyData = {
   "restaurant": {
         "id": 1,
@@ -56,9 +64,21 @@ const dummyData = {
     "isFavorited": false,
     "isLiked": false
 }
+const dummyUser = {
+  currentUser: {
+    id: 1,
+    name: '管理者',
+    email: 'root@example.com',
+    image: 'https://i.pravatar.cc/300',
+    isAdmin: true
+  },
+  isAuthenticated: true
+}
 export default {
   components: {
     RestaurantDetail,
+    RestaurantComments,
+    CreateComment
   },
   data() {
     return {
@@ -74,7 +94,8 @@ export default {
         isFavorited: false,
         isLiked: false
       },
-      restaurantComments: []
+      restaurantComments: [],
+      currentUser: dummyUser.currentUser
     }
   },
   created() {
@@ -99,6 +120,26 @@ export default {
         isLiked
       }
       this.restaurantComments = dummyData.restaurant.Comments
+    },
+    afterDeleteComment(commentId) {
+      //以 filter 保留未被選擇的 comment.id
+      this.restaurantComments = this.restaurantComments.filter(
+        comment => comment.id !== commentId
+      )
+    },
+    afterCreateComment(payload) {
+      const { commentId, restaurantId, text } = payload
+      console.log('push')
+      this.restaurantComments.push({
+        id: commentId,
+        RestaurantId: restaurantId,
+        User: {
+          id: this.currentUser.id,
+          name: this.currentUser.name
+        },
+        text,
+        createdAt: new Date()
+      })
     }
   }
 }
